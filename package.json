@@ -5,6 +5,7 @@
   "repository": "",
   "license": "",
   "dependencies": {
+    "cloudinary": "^1.8.0",
     "dotenv": "^4.0.0",
     "nightmare": "^2.10.0",
     "node-fetch": "^1.6.3",

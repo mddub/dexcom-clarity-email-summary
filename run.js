@@ -1,8 +1,9 @@
+require('dotenv').config()
+
+var cloudinary = require('cloudinary');
 var fetch = require('node-fetch');
 var fs = require('fs');
 var Nightmare = require('nightmare');
-
-require('dotenv').config()
 
 var WAIT = 5000;
 var SHOW = false;
@@ -95,25 +96,36 @@ function makeCharts(charts, cssContent) {
     ].join('');
     var screenshotFile = '/tmp/chart-' + i + '.png';
     return Nightmare({show: SHOW})
-      .viewport(855, 290)
+      .viewport(900, 290)
       .goto('data:text/html,' + html)
       .screenshot(screenshotFile)
       .end()
       .then(function() {
-        return [i, screenshotFile];
+        return screenshotFile;
       });
   });
   Promise.all(chartScreenshots).then(function(chartFiles) {
     stopFb();
-    stitchChartPngs(chartFiles);
+    uploadChartPngs(chartFiles);
   });
 }
 
-function stitchChartPngs(chartFiles) {
-  chartFiles.sort(function(a, b) { return a[0] - b[0]; });
-  var html = chartFiles.map(function(indexAndFile) {
-    var base64 = new Buffer(fs.readFileSync(indexAndFile[1])).toString('base64');
-    return '<img src="data:image/gif;base64,' + base64 + '"><br>';
+function uploadChartPngs(chartFiles) {
+  var uploads = chartFiles.map(function(chartFile) {
+    return new Promise(function(resolve, reject) {
+      cloudinary.uploader.upload(chartFile, function(result) {
+        resolve(result);
+      });
+    }).then(function(result) {
+      return result['secure_url'];
+    });
+  });
+  Promise.all(uploads).then(makeHtml);
+}
+
+function makeHtml(uploadUrls) {
+  var html = uploadUrls.map(function(uploadUrl) {
+    return '<img src="' + uploadUrl+ '"><br>';
   }).join('\n');
   console.log(html);
 }
