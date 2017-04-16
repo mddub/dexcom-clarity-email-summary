@@ -82,7 +82,7 @@ function makeChartPngs(charts, cssContent) {
     ].join('');
     var screenshotFile = '/tmp/chart-' + i + '.png';
     return Nightmare({show: SHOW})
-      .viewport(1200, 450)
+      .viewport(1300, 550)
       .goto('data:text/html,' + html)
       .screenshot(screenshotFile)
       .end()
@@ -99,9 +99,11 @@ function makeChartPngs(charts, cssContent) {
 function uploadChartPngs(chartFiles) {
   var uploads = chartFiles.map(function(chartFile) {
     return new Promise(function(resolve, reject) {
-      cloudinary.uploader.upload(chartFile, function(result) {
-        resolve(result);
-      });
+      cloudinary.uploader.upload(
+        chartFile,
+        function(result) { resolve(result); },
+        {transformation: {width: 0.75, crop: "scale"}}
+      );
     }).then(function(result) {
       return result['secure_url'];
     });
