@@ -78,13 +78,17 @@ nightmare
         var cssFetches = cssUrls.map(function(url) {
           return fetch(url).then(function(res) { return res.text(); })
         });
-        Promise.all(cssFetches).then(function(csses) {
-          makeCharts(allCharts, csses.join('\n'));
-        });
+
+        Promise.all(cssFetches)
+          .then(function(csses) {
+            return makeChartPngs(allCharts, csses.join('\n'));
+          })
+          .then(uploadChartPngs)
+          .then(makeHtml);
       })
   })
 
-function makeCharts(charts, cssContent) {
+function makeChartPngs(charts, cssContent) {
   var chartScreenshots = charts.map(function(chartHtml, i) {
     var html = [
       '<html>',
@@ -104,9 +108,9 @@ function makeCharts(charts, cssContent) {
         return screenshotFile;
       });
   });
-  Promise.all(chartScreenshots).then(function(chartFiles) {
+  return Promise.all(chartScreenshots).then(function(chartFiles) {
     stopFb();
-    uploadChartPngs(chartFiles);
+    return chartFiles;
   });
 }
 
@@ -120,7 +124,7 @@ function uploadChartPngs(chartFiles) {
       return result['secure_url'];
     });
   });
-  Promise.all(uploads).then(makeHtml);
+  return Promise.all(uploads);
 }
 
 function makeHtml(uploadUrls) {
