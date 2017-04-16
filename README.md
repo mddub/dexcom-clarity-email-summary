@@ -6,7 +6,7 @@
     CLARITY_USERNAME="username"
     CLARITY_PASSWORD="password"
     ```
-1. `node run.js > past_week.html`
+1. `node run.js | mail --subject "Clarity weekly summary" --append "Content-type:text/html" --append "From:from_address@domain.com" to_address@domain.com
 
 ## To-do
 

@@ -18,6 +18,24 @@ var secondPeriod = [
   new Date(endDate - 5 * 24 * 60 * 60 * 1000).toISOString().substr(0, 10),
 ];
 
+var xvfb;
+function startFb() {
+  if (process.platform.indexOf('linux') !== -1) {
+    var Xvfb = require('xvfb');
+    xvfb = new Xvfb({
+      silent: true
+    });
+    xvfb.startSync();
+  }
+}
+function stopFb() {
+  if (process.platform.indexOf('linux') !== -1) {
+    xvfb.stopSync();
+  }
+}
+
+startFb();
+
 var nightmare = Nightmare({show: SHOW});
 nightmare
   .goto('https://clarity.dexcom.com/')
@@ -85,7 +103,10 @@ function makeCharts(charts, cssContent) {
         return [i, screenshotFile];
       });
   });
-  Promise.all(chartScreenshots).then(stitchChartPngs);
+  Promise.all(chartScreenshots).then(function(chartFiles) {
+    stopFb();
+    stitchChartPngs(chartFiles);
+  });
 }
 
 function stitchChartPngs(chartFiles) {
